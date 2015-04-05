@@ -49,6 +49,14 @@ type rbNode struct {
 	key Comparable
 }
 
+func (n rbNode) IsRed() bool {
+	return n.color.IsRed()
+}
+
+func (n rbNode) IsBlack() bool {
+	return n.color.IsBlack()
+}
+
 type RbTree struct {
 	root *rbNode
 }
@@ -88,6 +96,7 @@ func (t *RbTree) Insert(data Comparable) error {
 		return nil
 	}
 	nNode := newRbNode(data)
+	nNode.parent = node
 	nNode.color.SetRed()
 	if node.key.Less(data) {
 		node.right = nNode
@@ -99,6 +108,23 @@ func (t *RbTree) Insert(data Comparable) error {
 	}
 	if node.color.IsBlack() {
 		return nil
+	}
+	pivot := nNode
+	for node.parent != nil && node.color.IsRed() {
+		uncle := node.parent.right
+		if node == node.parent.right {
+			uncle = node.parent.left
+		}
+		if uncle.IsRed() {
+			node.color.SetBlack()
+			uncle.color.SetBlack()
+			node.parent.color.SetRed()
+			pivot = node.parent
+			node = pivot.parent
+			continue
+		}
+		if pivot == node.right {
+		}
 	}
 	return nil
 }
