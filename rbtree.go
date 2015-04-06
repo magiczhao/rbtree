@@ -39,22 +39,13 @@ var (
 )
 
 type rbNode struct {
+	RbColor
 	// tree struct
 	parent *rbNode
 	left   *rbNode
 	right  *rbNode
-	// color of the node
-	color RbColor
 	// key and value are stored together
 	key Comparable
-}
-
-func (n rbNode) IsRed() bool {
-	return n.color.IsRed()
-}
-
-func (n rbNode) IsBlack() bool {
-	return n.color.IsBlack()
 }
 
 type RbTree struct {
@@ -84,20 +75,27 @@ func (t RbTree) Min() Comparable {
 }
 
 func newRbNode(data Comparable) *rbNode {
-	node := rbNode{nil, nil, nil, true, data}
+	node := rbNode{false, nil, nil, nil, data}
 	return &node
 }
 
 func (t *RbTree) Insert(data Comparable) error {
-	node := t.findPosition(data)
-	if node == nil {
+	// 1. root is empty
+	if t.root == nil {
 		// empty tree
 		t.root = newRbNode(data)
+		t.root.SetBlack()
 		return nil
 	}
+	node := t.findPosition(data)
+	if node == nil {
+		return ErrorNotFound
+	}
+	// init inserted node
 	nNode := newRbNode(data)
 	nNode.parent = node
-	nNode.color.SetRed()
+	nNode.SetRed()
+	// insert node
 	if node.key.Less(data) {
 		node.right = nNode
 	} else if data.Less(node.key) {
@@ -106,25 +104,33 @@ func (t *RbTree) Insert(data Comparable) error {
 		// already in tree
 		return ErrorAlreadyExists
 	}
-	if node.color.IsBlack() {
+	if node.IsBlack() {
 		return nil
 	}
-	pivot := nNode
-	for node.parent != nil && node.color.IsRed() {
+	for node.IsRed() {
 		uncle := node.parent.right
 		if node == node.parent.right {
 			uncle = node.parent.left
 		}
-		if uncle.IsRed() {
-			node.color.SetBlack()
-			uncle.color.SetBlack()
-			node.parent.color.SetRed()
-			pivot = node.parent
-			node = pivot.parent
+		if uncle != nil && uncle.IsRed() {
+			node.SetBlack()
+			uncle.SetBlack()
+			node.parent.SetRed()
+			nNode = node.parent
+			node = nNode.parent
 			continue
 		}
-		if pivot == node.right {
+		// 2. uncle is black and nNode is right child
+		if nNode == node.right {
+			t.rotateLeft(node)
+			node, nNode = nNode, node
 		}
+		// 3. uncle is black and nNode is left child
+		grandpaNode := node.parent
+		node.SetBlack()
+		grandpaNode.SetRed()
+		t.rotateRight(grandpaNode)
+		break
 	}
 	return nil
 }
