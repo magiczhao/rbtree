@@ -107,29 +107,36 @@ func (t *RbTree) Insert(data Comparable) error {
 	if node.IsBlack() {
 		return nil
 	}
-	for node.IsRed() {
+	for node != nil && node.IsRed() {
 		uncle := node.parent.right
 		if node == node.parent.right {
 			uncle = node.parent.left
 		}
+        // 2. uncle is red
 		if uncle != nil && uncle.IsRed() {
 			node.SetBlack()
 			uncle.SetBlack()
-			node.parent.SetRed()
+            if node.parent != t.root {
+			    node.parent.SetRed()
+            }
 			nNode = node.parent
 			node = nNode.parent
 			continue
 		}
-		// 2. uncle is black and nNode is right child
+		// 3. uncle is black and nNode is right child
 		if nNode == node.right {
 			t.rotateLeft(node)
 			node, nNode = nNode, node
 		}
-		// 3. uncle is black and nNode is left child
+		// 4. uncle is black and nNode is left child
 		grandpaNode := node.parent
 		node.SetBlack()
 		grandpaNode.SetRed()
 		t.rotateRight(grandpaNode)
+        // if root changed, modify root pointer in tree
+        if t.root == grandpaNode {
+            t.root = node
+        }
 		break
 	}
 	return nil
@@ -154,7 +161,15 @@ func (t *RbTree) rotateLeft(node *rbNode) {
 	}
 	right := node.right
 	node.right = right.left
+    if right.left != nil {
+        right.left.parent = node
+    }
+    node.parent = right
 	right.left = node
+    right.parent = parent
+    if parent == nil {
+        return
+    }
 	if node == parent.left {
 		parent.left = right
 	} else {
@@ -169,7 +184,15 @@ func (t *RbTree) rotateRight(node *rbNode) {
 	}
 	left := node.left
 	node.left = left.right
+    if left.right != nil {
+        left.right.parent = node
+    }
+    node.parent = left
 	left.right = node
+    left.parent = parent
+    if parent == nil {
+        return
+    }
 	if node == parent.left {
 		parent.left = left
 	} else {
