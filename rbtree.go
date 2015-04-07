@@ -1,6 +1,7 @@
 package rbtree
 
 import (
+    "fmt"
 	"errors"
 )
 
@@ -107,7 +108,7 @@ func (t *RbTree) Insert(data Comparable) error {
 	if node.IsBlack() {
 		return nil
 	}
-	for node != nil && node.IsRed() {
+	for node != t.root && node.IsRed() {
 		uncle := node.parent.right
 		if node == node.parent.right {
 			uncle = node.parent.left
@@ -123,21 +124,33 @@ func (t *RbTree) Insert(data Comparable) error {
 			node = nNode.parent
 			continue
 		}
-		// 3. uncle is black and nNode is right child
-		if nNode == node.right {
+		// 3. uncle is black
+		if nNode == node.right && node == node.parent.left {
+            fmt.Println("Befaore", nNode, node, node.parent)
 			t.rotateLeft(node)
+            fmt.Println("After", nNode, node, node.parent)
 			node, nNode = nNode, node
-		}
-		// 4. uncle is black and nNode is left child
-		grandpaNode := node.parent
-		node.SetBlack()
-		grandpaNode.SetRed()
-		t.rotateRight(grandpaNode)
-        // if root changed, modify root pointer in tree
-        if t.root == grandpaNode {
-            t.root = node
+		} else if nNode == node.right && node == node.parent.right {
+            t.rotateLeft(node.parent)
+            node.SetBlack()
+            node.parent.SetRed()
+            if node.parent == t.root {
+                t.root = node
+            }
+		    break
+        } else if nNode == node.left && node == node.parent.left {
+            fmt.Println(nNode, node, node.parent)
+            t.rotateRight(node.parent)
+            node.SetBlack()
+            node.parent.SetRed()
+            if node.parent == t.root {
+                t.root = node
+            }
+            break
+        } else { // nNode == node.left && node = node.parent.right
+            t.rotateRight(node)
+            node, nNode = nNode, node
         }
-		break
 	}
 	return nil
 }
