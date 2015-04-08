@@ -1,8 +1,8 @@
 package rbtree
 
 import (
-    "fmt"
 	"errors"
+	"fmt"
 )
 
 type RbColor bool
@@ -113,44 +113,44 @@ func (t *RbTree) Insert(data Comparable) error {
 		if node == node.parent.right {
 			uncle = node.parent.left
 		}
-        // 2. uncle is red
+		// 2. uncle is red
 		if uncle != nil && uncle.IsRed() {
 			node.SetBlack()
 			uncle.SetBlack()
-            if node.parent != t.root {
-			    node.parent.SetRed()
-            }
+			if node.parent != t.root {
+				node.parent.SetRed()
+			}
 			nNode = node.parent
 			node = nNode.parent
 			continue
 		}
 		// 3. uncle is black
 		if nNode == node.right && node == node.parent.left {
-            fmt.Println("Befaore", nNode, node, node.parent)
+			fmt.Println("Befaore", nNode, node, node.parent)
 			t.rotateLeft(node)
-            fmt.Println("After", nNode, node, node.parent)
+			fmt.Println("After", nNode, node, node.parent)
 			node, nNode = nNode, node
 		} else if nNode == node.right && node == node.parent.right {
-            t.rotateLeft(node.parent)
-            node.SetBlack()
-            node.parent.SetRed()
-            if node.parent == t.root {
-                t.root = node
-            }
-		    break
-        } else if nNode == node.left && node == node.parent.left {
-            fmt.Println(nNode, node, node.parent)
-            t.rotateRight(node.parent)
-            node.SetBlack()
-            node.parent.SetRed()
-            if node.parent == t.root {
-                t.root = node
-            }
-            break
-        } else { // nNode == node.left && node = node.parent.right
-            t.rotateRight(node)
-            node, nNode = nNode, node
-        }
+			t.rotateLeft(node.parent)
+			node.SetBlack()
+			node.parent.SetRed()
+			if node.parent == t.root {
+				t.root = node
+			}
+			break
+		} else if nNode == node.left && node == node.parent.left {
+			fmt.Println(nNode, node, node.parent)
+			t.rotateRight(node.parent)
+			node.SetBlack()
+			node.parent.SetRed()
+			if node.parent == t.root {
+				t.root = node
+			}
+			break
+		} else { // nNode == node.left && node = node.parent.right
+			t.rotateRight(node)
+			node, nNode = nNode, node
+		}
 	}
 	return nil
 }
@@ -174,15 +174,15 @@ func (t *RbTree) rotateLeft(node *rbNode) {
 	}
 	right := node.right
 	node.right = right.left
-    if right.left != nil {
-        right.left.parent = node
-    }
-    node.parent = right
+	if right.left != nil {
+		right.left.parent = node
+	}
+	node.parent = right
 	right.left = node
-    right.parent = parent
-    if parent == nil {
-        return
-    }
+	right.parent = parent
+	if parent == nil {
+		return
+	}
 	if node == parent.left {
 		parent.left = right
 	} else {
@@ -197,15 +197,15 @@ func (t *RbTree) rotateRight(node *rbNode) {
 	}
 	left := node.left
 	node.left = left.right
-    if left.right != nil {
-        left.right.parent = node
-    }
-    node.parent = left
+	if left.right != nil {
+		left.right.parent = node
+	}
+	node.parent = left
 	left.right = node
-    left.parent = parent
-    if parent == nil {
-        return
-    }
+	left.parent = parent
+	if parent == nil {
+		return
+	}
 	if node == parent.left {
 		parent.left = left
 	} else {
