@@ -2,43 +2,53 @@ package rbtree
 
 import (
 	"errors"
-	"fmt"
 )
 
+// RbColor is color for rbtree node
 type RbColor bool
 
+// IsRed test if the object is red colored
 func (c RbColor) IsRed() bool {
 	return c == true
 }
 
+// IsBlack test if the object is black colored
 func (c RbColor) IsBlack() bool {
 	return c == false
 }
 
+// SetBlack set the color of the object to black
 func (c *RbColor) SetBlack() {
 	*c = false
 }
 
+// SetRed set the color of the object to red
 func (c *RbColor) SetRed() {
 	*c = true
 }
 
+// Comparable is the interface to key of the tree
 type Comparable interface {
+	// Less returns true if this object is less than argument
 	Less(Comparable) bool
 }
 
+// NInf is a predefined Comparable
 type NInf struct{}
 
+// Less is always true
 func (n NInf) Less(data Comparable) bool {
 	return true
 }
 
+// predefined objects
 var (
 	ninf               = NInf{}
 	ErrorNotFound      = errors.New("value not found")
 	ErrorAlreadyExists = errors.New("Node already exists")
 )
 
+// rbNode is node in tree
 type rbNode struct {
 	RbColor
 	// tree struct
@@ -49,10 +59,12 @@ type rbNode struct {
 	key Comparable
 }
 
+// RbTree is redblack tree
 type RbTree struct {
 	root *rbNode
 }
 
+// Max get the max valued object in rbtree
 func (t RbTree) Max() Comparable {
 	if t.root == nil {
 		return nil
@@ -64,6 +76,7 @@ func (t RbTree) Max() Comparable {
 	return node.key
 }
 
+// Min get the min valued object in rbtree
 func (t RbTree) Min() Comparable {
 	if t.root == nil {
 		return nil
@@ -75,11 +88,13 @@ func (t RbTree) Min() Comparable {
 	return node.key
 }
 
+// newRbNode malloc and init a rbNode with data
 func newRbNode(data Comparable) *rbNode {
 	node := rbNode{false, nil, nil, nil, data}
 	return &node
 }
 
+// Insert insert a new value into the tree
 func (t *RbTree) Insert(data Comparable) error {
 	// 1. root is empty
 	if t.root == nil {
@@ -120,32 +135,28 @@ func (t *RbTree) Insert(data Comparable) error {
 			if node.parent != t.root {
 				node.parent.SetRed()
 			}
-			nNode = node.parent
-			node = nNode.parent
+			nNode, node = node.parent, nNode.parent
 			continue
 		}
 		// 3. uncle is black
 		if nNode == node.right && node == node.parent.left {
-			fmt.Println("Befaore", nNode, node, node.parent)
 			t.rotateLeft(node)
-			fmt.Println("After", nNode, node, node.parent)
 			node, nNode = nNode, node
 		} else if nNode == node.right && node == node.parent.right {
-			t.rotateLeft(node.parent)
 			node.SetBlack()
 			node.parent.SetRed()
 			if node.parent == t.root {
 				t.root = node
 			}
+			t.rotateLeft(node.parent)
 			break
 		} else if nNode == node.left && node == node.parent.left {
-			fmt.Println(nNode, node, node.parent)
-			t.rotateRight(node.parent)
 			node.SetBlack()
 			node.parent.SetRed()
 			if node.parent == t.root {
 				t.root = node
 			}
+			t.rotateRight(node.parent)
 			break
 		} else { // nNode == node.left && node = node.parent.right
 			t.rotateRight(node)
@@ -155,6 +166,8 @@ func (t *RbTree) Insert(data Comparable) error {
 	return nil
 }
 
+// Find search the entire tree to find the data, if not found error will
+// set to ErrorNotFound
 func (t RbTree) Find(data Comparable) (Comparable, error) {
 	node := t.findPosition(data)
 	if node == nil {
@@ -231,4 +244,27 @@ func (t RbTree) findPosition(data Comparable) *rbNode {
 		}
 	}
 	return parent
+}
+
+// Delete removes the data from the tree
+func (t *RbTree) Delete(data Comparable) {
+	node := t.findPosition(data)
+	if node == nil {
+		return
+	}
+	if node.left != nil && node.right != nil {
+		target := node
+		for target.right != nil {
+			target = target.right
+		}
+		node.key, target.key = target.key, node.key
+		node = target
+	}
+	// 1. remove the root
+	if node == t.root {
+		t.root = nil
+	}
+	parent := node.parent
+	if node.left != nil {
+	}
 }
