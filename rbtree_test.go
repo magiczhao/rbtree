@@ -121,3 +121,41 @@ func TestRbTreeMaxMin(t *testing.T) {
 		t.Error("Max failed")
 	}
 }
+
+func TestTreeDelete(t *testing.T) {
+	tree := RbTree{}
+
+	var ival IntValue
+	values := []IntValue{12, 22, 100, 50, 40, 60, 49, 101, 33}
+	for i := 0; i < len(values); i++ {
+		tree.Insert(values[i])
+	}
+
+	ival = 33
+	_, err := tree.Find(ival)
+	if err != nil {
+		t.Error("Find error")
+	}
+	tree.Delete(ival)
+	_, err = tree.Find(ival)
+	if err == nil {
+		t.Error("Delete error")
+	}
+
+	ival = 60
+	tree.Delete(ival)
+	_, err = tree.Find(ival)
+	if err == nil {
+		t.Error("Delete error")
+	}
+
+	ival = 32
+	tree.Delete(ival)
+
+	for i := 0; i < len(values); i++ {
+		tree.Delete(values[i])
+		if tree.root != nil && tree.root.IsRed() {
+			t.Error("Color is wrong")
+		}
+	}
+}
