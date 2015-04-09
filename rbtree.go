@@ -247,13 +247,13 @@ func (t RbTree) findPosition(data Comparable) *rbNode {
 }
 
 func allChildIsBlack(node *rbNode) bool {
-	if rbNode == nil {
+	if node == nil {
 		return true
 	}
-	if rbNode.left != nil && rbNode.left.IsRed() {
+	if node.left != nil && node.left.IsRed() {
 		return false
 	}
-	if rbNode.right != nil && rbNode.right.IsRed() {
+	if node.right != nil && node.right.IsRed() {
 		return false
 	}
 	return true
@@ -303,7 +303,7 @@ func (t *RbTree) Delete(data Comparable) {
 	}
 	// remove the node
 	parent := node.parent
-	child = node.left
+	child := node.left
 	if child == nil {
 		child = node.right
 	}
@@ -347,7 +347,7 @@ func (t *RbTree) Delete(data Comparable) {
 		// 4. sibling is red
 		if sibling != nil && sibling.IsRed() {
 			parent.SetRed()
-			sibling.SetBalck()
+			sibling.SetBlack()
 			if sibling == parent.left {
 				t.rotateRight(parent)
 			} else {
