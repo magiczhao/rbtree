@@ -246,6 +246,40 @@ func (t RbTree) findPosition(data Comparable) *rbNode {
 	return parent
 }
 
+func allChildIsBlack(node *rbNode) bool {
+	if rbNode == nil {
+		return true
+	}
+	if rbNode.left != nil && rbNode.left.IsRed() {
+		return false
+	}
+	if rbNode.right != nil && rbNode.right.IsRed() {
+		return false
+	}
+	return true
+}
+
+func swapColor(node1 *rbNode, node2 *rbNode) {
+	color1 := false
+	if node1.IsRed() {
+		color1 = true
+	}
+	color2 := false
+	if node2.IsRed() {
+		color2 = true
+	}
+	if color1 {
+		node1.SetRed()
+	} else {
+		node1.SetBlack()
+	}
+	if color2 {
+		node2.SetRed()
+	} else {
+		node2.SetBlack()
+	}
+}
+
 // Delete removes the data from the tree
 func (t *RbTree) Delete(data Comparable) {
 	node := t.findPosition(data)
@@ -253,18 +287,115 @@ func (t *RbTree) Delete(data Comparable) {
 		return
 	}
 	if node.left != nil && node.right != nil {
-		target := node
+		// find the max value in left child
+		target := node.left
 		for target.right != nil {
 			target = target.right
 		}
+		// exchange value
 		node.key, target.key = target.key, node.key
 		node = target
 	}
 	// 1. remove the root
 	if node == t.root {
 		t.root = nil
+		return
 	}
+	// remove the node
 	parent := node.parent
-	if node.left != nil {
+	child = node.left
+	if child == nil {
+		child = node.right
+	}
+
+	if parent.left == node {
+		parent.left = child
+	} else {
+		parent.right = child
+	}
+	if child != nil {
+		child.parent = parent
+	}
+	// 2. node is red, just return
+	if node.IsRed() {
+		return
+	}
+
+	// Adjust tree
+	if child != nil {
+		node = child
+	} else {
+		node = parent
+	}
+
+	for node != t.root {
+		parent = node.parent
+		// 3. node is red
+		if node.IsRed() {
+			node.SetBlack()
+			return
+		}
+		sibling := parent.left
+		if node == parent.left {
+			sibling = parent.right
+		}
+		// 4. no sibling
+		if sibling == nil {
+			node = parent
+			continue
+		}
+		// 4. sibling is red
+		if sibling != nil && sibling.IsRed() {
+			parent.SetRed()
+			sibling.SetBalck()
+			if sibling == parent.left {
+				t.rotateRight(parent)
+			} else {
+				t.rotateLeft(parent)
+			}
+			if parent == t.root {
+				t.root = sibling
+			}
+			node = parent
+			continue
+		}
+		// 5. sibling is black & all child is black
+		if sibling != nil && sibling.IsBlack() && allChildIsBlack(sibling) {
+			sibling.SetRed()
+			node = parent
+			continue
+		}
+		// 6. sibling is black & at least one child is red
+		if sibling != nil && sibling.IsBlack() {
+			if sibling == parent.right {
+				// right-right case
+				if sibling.right != nil && sibling.right.IsRed() {
+					t.rotateLeft(parent)
+					swapColor(parent, sibling)
+					sibling.right.SetBlack()
+					return
+				} else if sibling.left != nil && sibling.left.IsRed() {
+					// right-left case
+					t.rotateRight(sibling)
+					sibling.left.SetBlack()
+					sibling.SetRed()
+					continue
+				}
+			} else {
+				// left-left case
+				if sibling.left != nil && sibling.left.IsRed() {
+					t.rotateRight(parent)
+					swapColor(parent, sibling)
+					sibling.right.SetBlack()
+					return
+				} else if sibling.right != nil && sibling.right.IsRed() {
+					// left-right case
+					t.rotateLeft(sibling)
+					sibling.right.SetBlack()
+					sibling.SetRed()
+					continue
+				}
+			}
+		}
 	}
 }
